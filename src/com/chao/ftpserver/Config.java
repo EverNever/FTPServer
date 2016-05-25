@@ -48,7 +48,7 @@ public class Config {
         }
     }
 
-    private class User {
+    public class User {
         String username;
         String password;
 
