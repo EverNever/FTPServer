@@ -16,13 +16,13 @@ public class Config {
     public List<String> blackIPList = new ArrayList<>();
     public List<User> userList = new ArrayList<>();
 
-    public Config() {
-        initServerConfig();
+    public Config(String configPath) {
+        initServerConfig(configPath);
     }
 
-    private void initServerConfig() {
+    private void initServerConfig(String configPath) {
         try {
-            FileReader fileReader = new FileReader("init.conf");
+            FileReader fileReader = new FileReader(configPath);
             BufferedReader bufferedReader = new BufferedReader(fileReader);
             String tempLine;
             while ((tempLine = bufferedReader.readLine()) != null) {
