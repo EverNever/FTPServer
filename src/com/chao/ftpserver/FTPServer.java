@@ -65,6 +65,9 @@ public class FTPServer {
         private Socket mSocket; // master socket
         private Socket sSocket; // slave socket
 
+        BufferedWriter cmdOut; // command out
+        BufferedReader cmdIn; // command in
+
         // 被动模式下开启ServerSocket，等待client连接，accept以后返回sSocket传输数据
         private ServerSocket pasvServerSocket;
 
@@ -89,19 +92,17 @@ public class FTPServer {
 
         @Override
         public void run() {
-            BufferedWriter out;
-            BufferedReader in;
             try {
                 // outputStream只能读byte，OutputStreamWriter，bufferedWriter加上buffer
-                out = new BufferedWriter(new OutputStreamWriter(mSocket.getOutputStream()));
-                in = new BufferedReader(new InputStreamReader(mSocket.getInputStream()));
+                cmdOut = new BufferedWriter(new OutputStreamWriter(mSocket.getOutputStream()));
+                cmdIn = new BufferedReader(new InputStreamReader(mSocket.getInputStream()));
 
-                out.write("220 FTP Server is ready.\n");
-                out.flush();
+                cmdOut.write("220 FTP Server is ready.\n");
+                cmdOut.flush();
 
                 String input;
-                while ((input = in.readLine()) != null) {
-                    System.out.println(input);
+                while ((input = cmdIn.readLine()) != null) {
+                    System.out.println("client request: " + input);
 
                     if (!input.contains(" ")) {
                         // no params
@@ -138,17 +139,24 @@ public class FTPServer {
                             handleSTOR();
                             break;
                         case "DELE":
-
+                            break;
+                        case "LIST":
+                            break;
+                        case "PWD":
+                            break;
+                        case "CWD":
+                            break;
                         default:
                             response = "501 Syntax error in parameters or arguments.";
                             break;
                     }
 
-                    out.write(response + "\n");
-                    out.flush();
+                    System.out.println("server response: " + response);
+                    cmdOut.write(response + "\n");
+                    cmdOut.flush();
                 }
-                out.close();
-                in.close();
+                cmdOut.close();
+                cmdIn.close();
                 mSocket.close();
             } catch (IOException e) {
                 e.printStackTrace();
@@ -192,11 +200,14 @@ public class FTPServer {
         void handlePASV() {
             String ipAddress = "";
             try {
-                byte[] address = InetAddress.getLocalHost().getAddress(); // 返回的是byte型的0.0.0.0
+//                byte[] address = InetAddress.getLocalHost().getAddress(); // 返回的是byte型的0.0.0.0
+                byte[] address = mSocket.getLocalAddress().getAddress();
+
                 for (int i = 0; i < 4; i++) {
                     // 获得10进制的地址
                     ipAddress += ((address[i] & 0xff) + ",");
                 }
+
                 pasvServerSocket = new ServerSocket(0);
 
                 System.out.println("change to pasv mode. listen on " + ipAddress + pasvServerSocket.getLocalPort());
@@ -204,7 +215,7 @@ public class FTPServer {
                 int port1 = pasvServerSocket.getLocalPort() >> 8;
                 int port2 = pasvServerSocket.getLocalPort() & 0xff;
                 // 227 entering passive mode (127,0,0,1,4,18)
-                response = "227 entering passive mode (" + ipAddress + port1 + port2 + ")";
+                response = "227 entering passive mode (" + ipAddress + port1 + "," +port2 + ")";
                 // 进入被动模式
                 tranferMode = TranferMode.pasv;
             } catch (UnknownHostException e) {
@@ -215,7 +226,14 @@ public class FTPServer {
         }
 
         void handlePORT() {
-            remotePort = Integer.parseInt(params);
+            // PORT 192,168,1,100,224,250
+            // TODO remote address
+
+            String[] tempAddress = params.split(",");
+            int port1 = Integer.parseInt(tempAddress[4]);
+            int port2 = Integer.parseInt(tempAddress[5]);
+            remotePort = (port1 << 8) + port2;
+
             response = "227 entering positive mode.";
             tranferMode = TranferMode.port;
         }
@@ -230,38 +248,54 @@ public class FTPServer {
             try {
                 if (tranferMode == TranferMode.port) {
                     // 主动模式下直接bind到client
-                    sSocket = new Socket(remoteAddress, remotePort, InetAddress.getLocalHost(), 20);
+                    sSocket = new Socket(remoteAddress, remotePort,
+                            InetAddress.getByName(mSocket.getLocalAddress().getHostAddress()), 20);
                 } else if (tranferMode == TranferMode.pasv) {
                     // 被动模式下server等待client连接
                     sSocket = pasvServerSocket.accept();
                 }
 
+                int downloadSize = 0; // 下载文件流量
+
                 if (transferType == TransferType.ascii) {
+                    // 必须要有这条150返回
+                    cmdOut.write("150 Opening ASCII mode data connection for "+ params + "\n");
+                    cmdOut.flush();
+
                     // reader跟writer是字符流
                     Reader in = new FileReader(file);
                     Writer out = new OutputStreamWriter(sSocket.getOutputStream(), "UTF-8");
-                    char[] readChar = new char[1024];
-                    while (in.read(readChar) != -1) {
+
+                    int readChar;
+                    while ((readChar = in.read()) != -1) {
                         // TODO 统计下载流量
                         out.write(readChar);
+                        downloadSize++; // TODO 为何不是2B？读一个字符应该是2B
                     }
                     in.close();
                     out.close();
                 } else if (transferType == TransferType.binary) {
+                    cmdOut.write("150 Opening Binary mode data connection for "+ params + "\n");
+                    cmdOut.flush();
                     // stream的都是字节流
 
                     // file输入流
                     InputStream in = new FileInputStream(file);
                     // socket输出流
                     OutputStream out = sSocket.getOutputStream();
-                    byte[] readByte = new byte[1024]; // 1KB
-                    while (in.read(readByte) != -1) {
+
+                    int readByte;
+//                    byte[] readByte = new byte[1]; // 1B
+                    while ((readByte = in.read()) != -1) {
                         // TODO 统计下载流量
+                        downloadSize++;
                         out.write(readByte);
                     }
                     in.close();
                     out.close();
                 }
+
+                System.out.println("download file size: " + downloadSize + "B");
                 sSocket.close();
                 response = "226 Transfer complete!";
             } catch (IOException e) {
@@ -284,30 +318,46 @@ public class FTPServer {
             try {
                 if (tranferMode == TranferMode.port) {
                     // 主动模式下直接bind到client
-                    sSocket = new Socket(remoteAddress, remotePort, InetAddress.getLocalHost(), 20);
+                    sSocket = new Socket(remoteAddress, remotePort,
+                            InetAddress.getByName(mSocket.getLocalAddress().getHostAddress()), 20);
                 } else if (tranferMode == TranferMode.pasv) {
                     // 被动模式下server等待client连接
                     sSocket = pasvServerSocket.accept();
                 }
 
+                int uploadSize = 0;
+
                 if (transferType == TransferType.ascii) {
+                    cmdOut.write("150 Opening ASCII mode data connection for "+ params + "\n");
+                    cmdOut.flush();
+
                     Reader in = new InputStreamReader(sSocket.getInputStream(), "UTF-8");
                     Writer out = new FileWriter(file);
-                    char[] readChar = new char[1024];
-                    while (in.read(readChar) != -1) {
+
+                    int readChar;
+//                    char[] readChar = new char[1024];
+                    while ((readChar = in.read()) != -1) {
                         // TODO 统计上传流量
                         out.write(readChar);
+                        uploadSize++;
                     }
                     in.close();
                     out.close();
                 } else if (transferType == TransferType.binary) {
+                    cmdOut.write("150 Opening Binary mode data connection for "+ params + "\n");
+                    cmdOut.flush();
+
                     InputStream in = sSocket.getInputStream();
                     OutputStream out = new FileOutputStream(file);
-                    byte[] readByte = new byte[1024];
-                    while (in.read(readByte) != -1) {
+
+                    int readByte;
+//                    byte[] readByte = new byte[1024];
+                    while ((readByte = in.read()) != -1) {
                         // TODO 统计上传流量
                         out.write(readByte);
+                        uploadSize++;
                     }
+                    System.out.println("upload file size: " + uploadSize + "B");
                     in.close();
                     out.close();
                 }
