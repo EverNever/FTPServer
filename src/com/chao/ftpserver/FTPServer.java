@@ -31,9 +31,9 @@ public class FTPServer {
             while (true) {
                 // accept是阻塞方法
                 Socket mSocket = serverSocket.accept();
-                System.out.println(mSocket.getLocalSocketAddress()); // /192.168.1.104:21
-                System.out.println(mSocket.getLocalAddress().getHostAddress()); // 192.168.1.104
-                System.out.println(mSocket.getInetAddress().getHostAddress()); // 192.168.1.101
+//                System.out.println(mSocket.getLocalSocketAddress()); // /192.168.1.104:21
+//                System.out.println(mSocket.getLocalAddress().getHostAddress()); // 192.168.1.104
+//                System.out.println(mSocket.getInetAddress().getHostAddress()); // 192.168.1.101
 
                 String remoteAddress = mSocket.getRemoteSocketAddress().toString();
                 String realClientAddress = remoteAddress.substring(1, remoteAddress.lastIndexOf(":"));
@@ -305,6 +305,8 @@ public class FTPServer {
             } catch (IOException e) {
                 response = "451 Requested action aborted: local error in processing.";
                 e.printStackTrace();
+            } catch (NullPointerException e) {
+                connectionCount--;
             }
         }
 
@@ -386,7 +388,7 @@ public class FTPServer {
                 cmdOut.flush();
 
                 // 写字符流
-                Writer out = new OutputStreamWriter(sSocket.getOutputStream(), "UTF-8");
+                BufferedWriter out = new BufferedWriter(new OutputStreamWriter(sSocket.getOutputStream(), "UTF-8"));
                 for (int i = 0; i < fileList.length; i++) {
                     out.write(fileList[i] + "\n");
                 }
@@ -447,8 +449,8 @@ public class FTPServer {
             System.out.println("------FTPServer Runtime Information---------");
             System.out.println("OS: " + System.getProperty("os.name") + " " + System.getProperty("os.arch") + " " + System.getProperty("os.version"));
             System.out.println("Time: " + new Date());
-            System.out.println("Connection count: " + connectionCount);
-            System.out.println("download size: " + downloadSize);
+            System.out.println("Connection count: " + connectionCount + "B");
+            System.out.println("download size: " + downloadSize + "B");
             System.out.println("upload size: " + uploadSize);
             System.out.println("------------------");
         }
