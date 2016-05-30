@@ -1,0 +1,31 @@
+/192.168.1.107:49222 connected. Now connection count is 1
+client request: user chace
+server response: 331 User chace accepted, provide password.
+client request: pass 1234
+server response: 230 User chace logged in.
+client request: type I
+server response: 200 Command okay change to BINARY mode.
+client request: PASV
+change to pasv mode. listen on 192,168,1,102,52350
+server response: 227 entering passive mode (192,168,1,102,204,126)
+client request: RETR test.jpg
+download file size: 2737B
+server response: 226 Transfer complete!
+client request: STOR init.conf
+upload file size: 94B
+server response: 226 Transfer complete!
+client request: PORT 192,168,1,107,192,78
+change to port mode. 192.168.1.107:49230
+server response: 227 entering positive mode.
+client request: RETR test.jpg
+download file size: 5474B
+server response: 226 Transfer complete!
+client request: STOR FTPClient.iml
+upload file size: 531B
+server response: 226 Transfer complete!
+client request: pwd
+server response: 257 current directory is /Users/chao/Desktop/Git/FTPServer
+client request: LIST
+server response: 226 Transfer complete!
+client request: quit
+server response: 221 Service closing control connection.

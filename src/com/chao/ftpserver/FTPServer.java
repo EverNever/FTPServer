@@ -1,7 +1,6 @@
 package com.chao.ftpserver;
 
 import java.io.*;
-import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
@@ -12,6 +11,8 @@ import java.util.Date;
  */
 public class FTPServer {
     Config config;
+
+    int dataPort = 9999; // 数据端口
 
     int connectionCount = 0; // 当前连接数
     int downloadSize = 0; // 下载文件流量
@@ -25,8 +26,8 @@ public class FTPServer {
     public void startServer() {
         try {
             ServerSocket serverSocket = new ServerSocket(config.port);
-            System.out.println(serverSocket.getInetAddress().getHostAddress()); // 0.0.0.0
-            System.out.println(serverSocket.getLocalSocketAddress()); //0.0.0.0/0.0.0.0:21
+//            System.out.println(serverSocket.getInetAddress().getHostAddress()); // 0.0.0.0
+//            System.out.println(serverSocket.getLocalSocketAddress()); //0.0.0.0/0.0.0.0:21
             while (true) {
                 // accept是阻塞方法
                 Socket mSocket = serverSocket.accept();
@@ -254,8 +255,7 @@ public class FTPServer {
             try {
                 if (transferMode == TransferMode.port) {
                     // 主动模式下直接bind到client
-                    sSocket = new Socket(remoteAddress, remotePort,
-                            InetAddress.getByName(mSocket.getLocalAddress().getHostAddress()), 20);
+                    sSocket = new Socket(remoteAddress, remotePort);
                 } else if (transferMode == TransferMode.pasv) {
                     // 被动模式下server等待client连接
                     sSocket = pasvServerSocket.accept();
@@ -322,8 +322,7 @@ public class FTPServer {
             try {
                 if (transferMode == TransferMode.port) {
                     // 主动模式下直接bind到client
-                    sSocket = new Socket(remoteAddress, remotePort,
-                            InetAddress.getByName(mSocket.getLocalAddress().getHostAddress()), 20);
+                    sSocket = new Socket(remoteAddress, remotePort);
                 } else if (transferMode == TransferMode.pasv) {
                     // 被动模式下server等待client连接
                     sSocket = pasvServerSocket.accept();
@@ -376,8 +375,7 @@ public class FTPServer {
             try {
                 if (transferMode == TransferMode.port) {
                     // 主动模式下直接bind到client
-                    sSocket = new Socket(remoteAddress, remotePort,
-                            InetAddress.getByName(mSocket.getLocalAddress().getHostAddress()), 20);
+                    sSocket = new Socket(remoteAddress, remotePort);
                 } else if (transferMode == TransferMode.pasv) {
                     // 被动模式下server等待client连接
                     sSocket = pasvServerSocket.accept();
@@ -394,8 +392,6 @@ public class FTPServer {
                 }
                 out.flush();
                 out.close();
-
-                sSocket.close();
                 response = "226 Transfer complete!";
             } catch (IOException e) {
                 response = "451 Requested action aborted: local error in processing.";
