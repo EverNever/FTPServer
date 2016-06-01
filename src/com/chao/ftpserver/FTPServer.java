@@ -130,11 +130,17 @@ public class FTPServer {
                         case "QUIT":
                             handleQUIT();
                             break;
+                        case "SYST":
+                            handleSYST();
+                            break;
                         case "TYPE":
                             handleTYPE();
                             break;
                         case "PASV":
                             handlePASV();
+                            break;
+                        case "EPSV":
+                            handleEPSV();
                             break;
                         case "PORT":
                             handlePORT();
@@ -190,6 +196,10 @@ public class FTPServer {
             connectionCount--;
         }
 
+        void handleSYST() {
+            response = "215 " + "UNIX Type: I";
+        }
+
         void handleTYPE() {
             if (params.equals("A")) {
                 transferType = TransferType.ascii;
@@ -225,6 +235,24 @@ public class FTPServer {
                 transferMode = TransferMode.pasv;
             } catch (UnknownHostException e) {
                 e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        void handleEPSV() {
+//            FtpClient>>epsv
+//            server response: 229 Entering Extended Passive Mode (|||50888|)
+//            FtpClient>>lpsv
+//            server response: 228 Entering Long Passive Mode (4,4,127,0,0,1,2,198,201)
+            try {
+                if (pasvServerSocket == null)
+                    pasvServerSocket = new ServerSocket(0);
+
+                System.out.println("change to epsv mode. listen on port: " + pasvServerSocket.getLocalPort());
+
+                response = "229 Entering Extended Passive Mode (|||" + pasvServerSocket.getLocalPort() + "|)";
+                transferMode = TransferMode.pasv;
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -394,6 +422,7 @@ public class FTPServer {
                 }
                 out.flush();
                 out.close();
+                sSocket.close();
                 response = "226 Transfer complete!";
             } catch (IOException e) {
                 response = "451 Requested action aborted: local error in processing.";
@@ -421,7 +450,7 @@ public class FTPServer {
             try {
                 String input;
                 while (true) {
-                    System.out.print("ftp>>");
+                    System.out.print("FtpServer>>");
                     input = in.readLine();
                     command = input.toUpperCase().trim();
                     switch (command) {
@@ -449,9 +478,9 @@ public class FTPServer {
             System.out.println("------FTPServer Runtime Information---------");
             System.out.println("OS: " + System.getProperty("os.name") + " " + System.getProperty("os.arch") + " " + System.getProperty("os.version"));
             System.out.println("Time: " + new Date());
-            System.out.println("Connection count: " + connectionCount + "B");
+            System.out.println("Connection count: " + connectionCount);
             System.out.println("download size: " + downloadSize + "B");
-            System.out.println("upload size: " + uploadSize);
+            System.out.println("upload size: " + uploadSize + "B");
             System.out.println("------------------");
         }
 

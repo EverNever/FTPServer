@@ -1,31 +1,50 @@
-/192.168.1.107:49222 connected. Now connection count is 1
-client request: user chace
+"C:\Program Files\Java\jdk1.8.0_51\bin\java" -Didea.launcher.port=7553 "-Didea.launcher.bin.path=H:\App\JetBrains\IntelliJ IDEA Community Edition 2016.1.2\bin" -Dfile.encoding=UTF-8 -classpath "C:\Program Files\Java\jdk1.8.0_51\jre\lib\charsets.jar;C:\Program Files\Java\jdk1.8.0_51\jre\lib\deploy.jar;C:\Program Files\Java\jdk1.8.0_51\jre\lib\javaws.jar;C:\Program Files\Java\jdk1.8.0_51\jre\lib\jce.jar;C:\Program Files\Java\jdk1.8.0_51\jre\lib\jfr.jar;C:\Program Files\Java\jdk1.8.0_51\jre\lib\jfxswt.jar;C:\Program Files\Java\jdk1.8.0_51\jre\lib\jsse.jar;C:\Program Files\Java\jdk1.8.0_51\jre\lib\management-agent.jar;C:\Program Files\Java\jdk1.8.0_51\jre\lib\plugin.jar;C:\Program Files\Java\jdk1.8.0_51\jre\lib\resources.jar;C:\Program Files\Java\jdk1.8.0_51\jre\lib\rt.jar;C:\Program Files\Java\jdk1.8.0_51\jre\lib\ext\access-bridge-64.jar;C:\Program Files\Java\jdk1.8.0_51\jre\lib\ext\cldrdata.jar;C:\Program Files\Java\jdk1.8.0_51\jre\lib\ext\dnsns.jar;C:\Program Files\Java\jdk1.8.0_51\jre\lib\ext\jaccess.jar;C:\Program Files\Java\jdk1.8.0_51\jre\lib\ext\jfxrt.jar;C:\Program Files\Java\jdk1.8.0_51\jre\lib\ext\localedata.jar;C:\Program Files\Java\jdk1.8.0_51\jre\lib\ext\nashorn.jar;C:\Program Files\Java\jdk1.8.0_51\jre\lib\ext\sunec.jar;C:\Program Files\Java\jdk1.8.0_51\jre\lib\ext\sunjce_provider.jar;C:\Program Files\Java\jdk1.8.0_51\jre\lib\ext\sunmscapi.jar;C:\Program Files\Java\jdk1.8.0_51\jre\lib\ext\sunpkcs11.jar;C:\Program Files\Java\jdk1.8.0_51\jre\lib\ext\zipfs.jar;H:\Git\FTPClient\out\production\FTPClient;H:\App\JetBrains\IntelliJ IDEA Community Edition 2016.1.2\lib\idea_rt.jar" com.intellij.rt.execution.application.AppMain com.chao.ftpclient.Main
+Console output is saving to: H:\Git\FTPClient
+FtpClient>>ftp 192.168.1.102 8888
+192.168.1.102 8888
+connected to 192.168.1.102:8888
+server response: 220 FTP Server is ready.
+FtpClient>>user chace
 server response: 331 User chace accepted, provide password.
-client request: pass 1234
+FtpClient>>pass 1234
 server response: 230 User chace logged in.
-client request: type I
+FtpClient>>type I
 server response: 200 Command okay change to BINARY mode.
-client request: PASV
-change to pasv mode. listen on 192,168,1,102,52350
+FtpClient>>pasv
 server response: 227 entering passive mode (192,168,1,102,204,126)
-client request: RETR test.jpg
-download file size: 2737B
+FtpClient>>retr test.jpg
+server response: 150 Opening Binary mode data connection for test.jpg
 server response: 226 Transfer complete!
-client request: STOR init.conf
-upload file size: 94B
+FtpClient>>stor init.conf
+server response: 150 Opening Binary mode data connection for init.conf
 server response: 226 Transfer complete!
-client request: PORT 192,168,1,107,192,78
-change to port mode. 192.168.1.107:49230
+FtpClient>>port
+PORT 192,168,1,107,192,78
 server response: 227 entering positive mode.
-client request: RETR test.jpg
-download file size: 5474B
+FtpClient>>retr test.jpg
+server response: 150 Opening Binary mode data connection for test.jpg
 server response: 226 Transfer complete!
-client request: STOR FTPClient.iml
-upload file size: 531B
+FtpClient>>stor FTPClient.iml
+server response: 150 Opening Binary mode data connection for FTPClient.iml
 server response: 226 Transfer complete!
-client request: pwd
+FtpClient>>pwd
 server response: 257 current directory is /Users/chao/Desktop/Git/FTPServer
-client request: LIST
+FtpClient>>list
+.DS_Store
+.git
+.gitignore
+.idea
+example
+FTPClient.iml
+FTPServer.iml
+init.conf
+logo.jpg
+out
+src
+start.sh
+test.jpg
+server response: 150 Opening ASCII mode data connection for LIST
 server response: 226 Transfer complete!
-client request: quit
+FtpClient>>quit
 server response: 221 Service closing control connection.
+FtpClient>>
